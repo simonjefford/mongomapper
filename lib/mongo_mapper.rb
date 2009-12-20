@@ -33,6 +33,25 @@ module MongoMapper
   def self.connection
     @@connection ||= Mongo::Connection.new
   end
+
+  # @api public
+  def self.configure(configuration)
+    @@connection = Mongo::Connection.new(
+      configuration[self.environment]["host"],
+      configuration[self.environment]["port"]
+    )
+    self.database = configuration[self.environment]["database"]
+  end
+
+  # @api public
+  def self.environment
+    @@environment ||= "development"
+  end
+
+  # @api public
+  def self.environment=(env)
+    @@environment = env
+  end
   
   # @api public
   def self.connection=(new_connection)
@@ -105,6 +124,7 @@ require 'mongo_mapper/serialization'
 require 'mongo_mapper/validations'
 require 'mongo_mapper/rails_compatibility/document'
 require 'mongo_mapper/rails_compatibility/embedded_document'
+require 'mongo_mapper/rails_compatibility/configure_environment.rb'
 require 'mongo_mapper/embedded_document'
 require 'mongo_mapper/document'
 require 'mongo_mapper/associations'
