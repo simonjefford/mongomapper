@@ -55,9 +55,20 @@ class MongoMapperTest < Test::Unit::TestCase
     end
 
     should "set up the connection with the default environment settings" do
-      Mongo::Connection.expects(:new).with('development_box', 99999)
+      Mongo::Connection.expects(:new).with('development_box', 99999, :logger => nil)
       MongoMapper.expects(:database=).with('dev')
       MongoMapper.configure(@configuration)
+    end
+
+    should "set up an optional logger" do
+      logger = mock('logger')
+      connection = mock('connection')
+      connection.stubs(:logger).returns(logger)
+      Mongo::Connection.expects(:new).with('development_box', 99999, :logger => logger).
+                                     returns(connection)
+      MongoMapper.stubs(:database=)
+      MongoMapper.configure(@configuration, logger)
+      MongoMapper.logger.should == logger
     end
 
     context "with explicit environment" do
@@ -66,7 +77,7 @@ class MongoMapperTest < Test::Unit::TestCase
       end
 
       should "set up the connection with the configured environment settings" do
-        Mongo::Connection.expects(:new).with('production_box', 100000)
+        Mongo::Connection.expects(:new).with('production_box', 100000, :logger => nil)
         MongoMapper.expects(:database=).with('prod')
         MongoMapper.configure(@configuration)
       end

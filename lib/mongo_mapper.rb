@@ -35,10 +35,11 @@ module MongoMapper
   end
 
   # @api public
-  def self.configure(configuration)
+  def self.configure(configuration, logger = nil)
     @@connection = Mongo::Connection.new(
       configuration[self.environment]["host"],
-      configuration[self.environment]["port"]
+      configuration[self.environment]["port"],
+      :logger => logger
     )
     self.database = configuration[self.environment]["database"]
   end
