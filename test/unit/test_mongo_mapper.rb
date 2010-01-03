@@ -37,7 +37,53 @@ class MongoMapperTest < Test::Unit::TestCase
       MongoMapper.use_time_zone?.should be_false
     end
   end
-  
+
+  context "configure" do
+    setup do
+      @configuration = {
+        "development" => {
+          "host" => 'development_box',
+          "port" => 99999,
+          "database" => 'dev'
+        },
+        "production" => {
+          "host" => 'production_box',
+          "port" => 100000,
+          "database" => 'prod'
+        }
+      }
+    end
+
+    should "set up the connection with the default environment settings" do
+      Mongo::Connection.expects(:new).with('development_box', 99999, :logger => nil)
+      MongoMapper.expects(:database=).with('dev')
+      MongoMapper.configure(@configuration)
+    end
+
+    should "set up an optional logger" do
+      logger = mock('logger')
+      connection = mock('connection')
+      connection.stubs(:logger).returns(logger)
+      Mongo::Connection.expects(:new).with('development_box', 99999, :logger => logger).
+                                     returns(connection)
+      MongoMapper.stubs(:database=)
+      MongoMapper.configure(@configuration, logger)
+      MongoMapper.logger.should == logger
+    end
+
+    context "with explicit environment" do
+      setup do
+        MongoMapper.environment = "production"
+      end
+
+      should "set up the connection with the configured environment settings" do
+        Mongo::Connection.expects(:new).with('production_box', 100000, :logger => nil)
+        MongoMapper.expects(:database=).with('prod')
+        MongoMapper.configure(@configuration)
+      end
+    end
+  end
+
   context "time_class" do
     should "be Time.zone if using time zones" do
       Time.zone = 'Hawaii'
